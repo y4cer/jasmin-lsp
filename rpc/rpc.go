@@ -1,10 +1,10 @@
 package rpc
 
 import (
-	"encoding/json"
-	"fmt"
 	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -20,45 +20,37 @@ func EncodeMessage(msg any) string {
 		panic(err)
 	}
 
-
 	return fmt.Sprintf("Content-Length: %d\r\n\r\n%s", len(content), content)
 }
 
-func DecodeMessage(msg []byte) (int, error) {
+func DecodeMessage(msg []byte) (string, []byte, error) {
 	header, content, found := bytes.Cut(msg, []byte("\r\n\r\n"))
 
-	fmt.Printf("%s, %s, %t\n", header, content, found)
-
 	if !found {
-		return 0, errors.New("Could not find separator!")
+		return "", nil, errors.New("COULD NOT FIND SEPARATOR")
 	}
 
 	contentLengthString := []byte("Content-Length: ")
 	contentLength, err := strconv.Atoi(string(header[len(contentLengthString):]))
 
 	if err != nil {
-		return 0, err
+		return "", nil, err
 	}
 
 	var baseMessage BaseMessage
 	if err := json.Unmarshal(content[:contentLength], &baseMessage); err != nil {
-		return 0, err
+		return "", nil, err
 	}
 
-	fmt.Println(baseMessage.Method)
-	
-
-	return contentLength, nil
+	return baseMessage.Method, content[:contentLength], nil
 }
 
-// type SplitFunc func(data []byte, atEOF bool) (advance int, token []byte, err error)
 func Split(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	header, content, found := bytes.Cut(data, []byte("\r\n\r\n"))
 
 	if !found {
 		return 0, nil, nil
 	}
-
 
 	contentLengthString := []byte("Content-Length: ")
 	contentLength, err := strconv.Atoi(string(header[len(contentLengthString):]))

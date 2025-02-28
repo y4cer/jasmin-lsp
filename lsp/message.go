@@ -19,3 +19,8 @@ type ResponseMessage struct {
 	// Result
 	// Error
 }
+
+type NotificationMessage struct {
+	*Message
+	Method string `json:"method"`
+}

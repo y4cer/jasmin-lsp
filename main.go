@@ -20,20 +20,21 @@ func getLogger(filename string) *log.Logger {
 	return log.New(logfile, "[jasmin-lsp] ", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
-func handleMessage(logger *log.Logger, msg string) {
+func handleMessage(logger *log.Logger, msg []byte) {
 	logger.Println(msg)
 }
 
 func main() {
 	logger := getLogger("/tmp/jasmin-lsp.log")
 
-	logger.Println("aboba")
+	logger.Println("server started")
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(rpc.Split)
 
 	for scanner.Scan() {
-		msg := scanner.Text()
+		msg := scanner.Bytes()
+		rpc.DecodeMessage(msg)
 		handleMessage(logger, msg)
 	}
 }
