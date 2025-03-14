@@ -1,0 +1,17 @@
+(executable
+ (public_name jasmin_lsp)
+ (name main)
+ (libraries
+   lsp
+   lwt
+   lwt.unix
+   ppx_deriving_yojson
+ )
+ (preprocess
+  (pps
+    lwt_ppx
+    ppx_deriving.show
+    ppx_deriving_yojson
+  )
+ )
+)

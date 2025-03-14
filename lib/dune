@@ -1,0 +1,4 @@
+(library
+ (name jasmin_lsp)
+ (preprocess (pps ppx_deriving.show))
+ (libraries jsonrpc lsp yojson ppx_yojson_conv logs))
