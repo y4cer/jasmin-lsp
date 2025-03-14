@@ -2,10 +2,8 @@
  (public_name jasmin_lsp)
  (name main)
  (libraries
-   lsp
-   lwt
-   lwt.unix
-   ppx_deriving_yojson
+  lsp
+  jasmin_lsp.rpc
  )
  (preprocess
   (pps

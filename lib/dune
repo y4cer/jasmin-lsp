@@ -1,4 +1,20 @@
 (library
+ (public_name jasmin_lsp.rpc)
  (name jasmin_lsp)
- (preprocess (pps ppx_deriving.show))
- (libraries jsonrpc lsp yojson ppx_yojson_conv logs))
+ (libraries 
+  jsonrpc 
+  logs
+  lsp 
+  lwt
+  lwt.unix
+  ppx_yojson_conv 
+  yojson 
+ )
+ (preprocess 
+  (pps 
+    lwt_ppx
+    ppx_deriving.show
+    ppx_deriving_yojson
+   )
+  )
+ )
