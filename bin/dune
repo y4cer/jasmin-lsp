@@ -3,7 +3,7 @@
  (name main)
  (libraries
   lsp
-  jasmin_lsp.rpc
+  jasmin_lsp.internal
  )
  (preprocess
   (pps

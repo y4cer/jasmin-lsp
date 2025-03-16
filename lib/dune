@@ -1,5 +1,5 @@
 (library
- (public_name jasmin_lsp.rpc)
+ (public_name jasmin_lsp.internal)
  (name jasmin_lsp)
  (libraries 
   jsonrpc 
