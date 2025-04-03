@@ -1,0 +1,3 @@
+[submodule "jasmin-compiler"]
+	path = jasmin-compiler
+	url = https://gitlab.com/jasmin-lang/jasmin-compiler.git

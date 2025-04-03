@@ -13,13 +13,13 @@ let send packet =
   flush ()
 
 let () = 
+  Random.self_init ();
   let _rpc_loop = Lwt_main.run (
     let%lwt client_msg = read () in
     match client_msg with
     | Some msg ->
       let res = handle_message msg in
       log_msg ( Yojson.Safe.pretty_to_string @@ Packet.yojson_of_t res);
-      log_msg "132";
       send res;
     | None ->
       log_msg "Stop";

@@ -11,8 +11,7 @@ let handle_request (type r) (request : r Client_request.t) (req_id : Id.t) =
   | Client_request.Initialize (_params : Types.InitializeParams.t) -> (
     let init = Initialize_request.on_request _params in 
     let resp = Initialize_request.respond req_id request init in
-    let st = Packet.yojson_of_t resp |> Yojson.Safe.pretty_to_string in 
-    log_msg st;
+    let _st = Packet.yojson_of_t resp |> Yojson.Safe.pretty_to_string in 
     resp
   )
   | _ -> (
