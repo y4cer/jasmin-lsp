@@ -7,17 +7,19 @@ let on_request (_params : InitializeParams.t) =
     ServerCapabilities.create
       ~textDocumentSync:
         (`TextDocumentSyncOptions
-          (TextDocumentSyncOptions.create ~openClose:true ())) ()
+          (TextDocumentSyncOptions.create ~openClose:true 
+          ~change: TextDocumentSyncKind.Full ~save:(`Bool true) ())) ()
   in
   let init = 
     InitializeResult.
       { 
         capabilities = capabilities;
-        serverInfo = Some { name = "aboba"; version = Some "1.2.3" }
+        serverInfo = Some { name = "jasmin-lsp"; version = Some "0.0.1" }
       }
   in init
 
 let packet_of_response (r : Response.t) = Packet.Response r
+let packet_of_request (r : Request.t) = Packet.Request r
 
 let respond_json id result = packet_of_response (Response.ok id result)
 
