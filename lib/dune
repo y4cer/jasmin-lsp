@@ -1,3 +1,10 @@
+(ocamllex
+ (modules lexer))
+
+(menhir
+ (flags "--table" "--explain" "--inspection")
+ (modules parser))
+
 (library
  (public_name jasmin_lsp.internal)
  (name jasmin_lsp)
