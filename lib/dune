@@ -2,6 +2,7 @@
  (public_name jasmin_lsp.internal)
  (name jasmin_lsp)
  (libraries 
+  jasmin.jasmin
   jsonrpc 
   logs
   lsp 
