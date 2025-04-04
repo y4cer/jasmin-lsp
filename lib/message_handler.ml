@@ -12,5 +12,5 @@ let handle_message (msg : Packet.t) =
   log_msg a; *)
   match msg with 
   | Request req -> log_msg (string_of_int @@ Random.int 10); on_request req
-  | Notification notification -> log_msg "notification"; on_notification notification; msg
+  | Notification notification -> log_msg "notification"; handle_notification notification; msg
   | _ -> log_msg "smth else"; msg
