@@ -1,7 +1,7 @@
 (* open Jsonrpc *)
 open Lsp
 (* open Types *)
-open Parse
+(* open Parse *)
 
 let log_msg msg =
   let oc = open_out_gen [Open_append] 0o666 "/tmp/logs.log" in
@@ -15,5 +15,5 @@ let handle_notification notification =
 
 let on_notification (notification : Client_notification.t) =
   match notification with
-  | Client_notification.TextDocumentDidOpen { textDocument = { text; _}} -> parse_string text
+  | Client_notification.TextDocumentDidOpen { textDocument = { text = _; _}} -> ()
   | _ -> ()

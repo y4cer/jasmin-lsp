@@ -20,14 +20,10 @@ let print_position outx (lexbuf : Lexing.lexbuf) =
   Core.fprintf outx "%s:%d:%d" pos.pos_fname
     pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
-let parse_with_error _lexbuf =
-()
-
 let parse_and_print _lexbuf = 
   ()
 
 let parse_string (s : string) = 
-  let lexbuf = Lexing.from_channel (in_channel_of_string s) in
-  lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = "tmp" };
-  parse_and_print lexbuf;
-  ()
+  let lexbuf = Lexing.from_string s in
+  let ast = P.module_ Lexer.main lexbuf in
+  ast
