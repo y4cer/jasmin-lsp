@@ -1,3 +1,6 @@
+open Core
+open Lexing
+
 module L = MenhirLib.LexerUtil
 module E = MenhirLib.ErrorReports
 
@@ -5,25 +8,19 @@ module P = Jasmin.Parser
 
 module I = P.MenhirInterpreter
 
-let in_channel_of_string string =
-  let (in_file_descr, out_file_descr) = Unix.pipe () in
-  let in_channel = Unix.in_channel_of_descr in_file_descr in
-  let out_channel = Unix.out_channel_of_descr out_file_descr in
-  begin
-    output_string out_channel string;
-    flush out_channel;
-    in_channel;
-  end
 
 let print_position outx (lexbuf : Lexing.lexbuf) =
   let pos = lexbuf.lex_curr_p in
   Core.fprintf outx "%s:%d:%d" pos.pos_fname
     pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
-let parse_and_print _lexbuf = 
-  ()
+(* Prints the line number and character number where the error occurred.*)
+let print_error_position lexbuf =
+  let pos = lexbuf.lex_curr_p in
+  sprintf "Line:%d Position:%d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
 let parse_string (s : string) = 
   let lexbuf = Lexing.from_string s in
-  let ast = P.module_ Lexer.main lexbuf in
-  ast
+  try Ok (P.module_ Lexer.main lexbuf) with
+  | Jasmin.Syntax.ParseError _ -> print_endline @@ print_error_position lexbuf; Error (Error.of_string @@ print_error_position lexbuf)
+  | Parser.Error -> Error (Error.of_string @@ print_error_position lexbuf)
