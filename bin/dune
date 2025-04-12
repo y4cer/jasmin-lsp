@@ -5,6 +5,7 @@
   jasmin.jasmin
   lsp
   jasmin_lsp.internal
+  jasmin_lsp
  )
  (preprocess
   (pps

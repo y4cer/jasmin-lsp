@@ -1,5 +1,6 @@
 (* open Jsonrpc *)
 open Lsp
+(* open Diagnostics *)
 (* open Types *)
 (* open Parse *)
 
@@ -15,5 +16,8 @@ let handle_notification notification =
 
 let on_notification (notification : Client_notification.t) =
   match notification with
-  | Client_notification.TextDocumentDidOpen { textDocument = { text = _; _}} -> ()
+  | Client_notification.TextDocumentDidOpen { textDocument = { text = _; _}} -> 
+      let _diagnostic = Diagnostics.diagnostics_of_file "/home/drovosek/dip/lsp/jasmin-lsp/example.jazz" 
+      (* Lwt.return ( Utils.send ( LSP_.notify diagnostic))  *)
+    in ()
   | _ -> ()
