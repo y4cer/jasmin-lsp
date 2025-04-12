@@ -1,20 +1,17 @@
 open Jsonrpc
 open Lsp
 
-let log_msg msg =
-  let oc = open_out_gen [Open_append] 0o666 "/tmp/logs.log" in
-  Printf.fprintf oc "%s\n" msg;
-  close_out oc;;
-
 let handle_request (type r) (request : r Client_request.t) (req_id : Id.t) = 
   match request with 
   | Client_request.Initialize (_params : Types.InitializeParams.t) -> (
+    Logs.debug (fun m -> m "init req");
     let init = Initialize_request.on_request _params in 
     let resp = LSP_.respond req_id request init in
     let _st = Packet.yojson_of_t resp |> Yojson.Safe.pretty_to_string in 
     resp
   )
   | _ -> (
+    Logs.debug (fun m -> m "unknown req");
     LSP_.packet_of_request @@ Client_request.to_jsonrpc_request request ~id:(`Int 0)
   )
 

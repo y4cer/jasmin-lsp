@@ -2,15 +2,20 @@ open Jsonrpc
 open Request_handler
 open Notification_handler
 
-let log_msg msg =
-  let oc = open_out_gen [Open_append;Open_trunc;Open_creat] 0o666 "/tmp/logs.log" in
-  Printf.fprintf oc "%s\n" msg;
-  close_out oc;;
-
 let handle_message (msg : Packet.t) =
-  (* let a = Yojson.Safe.pretty_to_string @@ Packet.yojson_of_t msg in
-  log_msg a; *)
+  Logs.debug (fun m -> m "handling message");
   match msg with 
-  | Request req -> log_msg (string_of_int @@ Random.int 10); on_request req
-  | Notification notification -> log_msg "notification"; handle_notification notification; msg
-  | _ -> log_msg "smth else"; msg
+  | Request req -> (
+    Logs.debug (fun m -> m "req");
+    on_request req
+  )
+  | Notification notification -> (
+    Logs.debug (fun m -> m "notification");
+    match handle_notification notification with
+    | Some packet -> packet
+    | None -> msg
+  )
+  | _ -> (
+    Logs.debug (fun m -> m "unknown"); 
+    msg
+  )

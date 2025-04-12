@@ -5,11 +5,6 @@ open Types
 
 module SN = Server_notification
 
-let log_msg msg =
-  let oc = open_out_gen [Open_append] 0o666 "/tmp/logs.log" in
-  Printf.fprintf oc "%s\n" msg;
-  close_out oc;;
-
 (*TODO: think about how to get parsing error. Parsing error is not actually an error in our case, it is desirable*)
 (* let range_of_err err =  *)
 

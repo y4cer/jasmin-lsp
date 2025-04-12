@@ -12,7 +12,7 @@
   core
   jasmin.jasmin
   jsonrpc 
-  logs
+  logs logs.fmt
   lsp 
   lwt
   lwt.unix
