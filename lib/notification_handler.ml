@@ -9,7 +9,7 @@ let on_notification (_server : Rpc_server.t) (notification : Client_notification
     match notification with
     | Client_notification.TextDocumentDidOpen { textDocument = { text = _; uri; _}} -> 
         Logs.debug (fun m -> m "didopen");
-        let diagnostic = Diagnostics.diagnostics_of_file (Uri.to_string uri) in
+        let diagnostic = Diagnostics.diagnostics_of_file uri in
         let packet = LSP_.notify diagnostic
       in Some packet
     | Client_notification.Initialized -> 

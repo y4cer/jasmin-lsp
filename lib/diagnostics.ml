@@ -21,7 +21,7 @@ let diagnostics_of_file file =
   let diagnostics = diagnostic () in
   let params = 
     PublishDiagnosticsParams.create
-      ~uri:(Uri.of_path file)
+      ~uri: file
       ~diagnostics: [diagnostics]
       ()
   in
