@@ -1,5 +1,6 @@
 open Jsonrpc
 open Lsp
+open Types
 
 module SN = Server_notification
 
@@ -43,6 +44,13 @@ let notify notification =
       m "Sending notification %s"
         (Notification.yojson_of_t notification |> Yojson.Safe.pretty_to_string));
   packet_of_notification notification
+
+let notify_show_message ~kind s =
+  let notif =
+    Server_notification.ShowMessage
+      { ShowMessageParams.message = s; type_ = kind }
+  in
+  notify notif
 
 let batch_notify notifications =
   Logs.debug (fun m -> m "Sending notifications");

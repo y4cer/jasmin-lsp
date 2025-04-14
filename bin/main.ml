@@ -1,4 +1,7 @@
 open Jasmin_lsp
+open Lsp
+open Types
+open Rpc_server
 
 let setup_logging_to_file filename =
   (* Create a formatter that writes to the file *)
@@ -15,15 +18,29 @@ let setup_logging_to_file filename =
   Logs.set_level (Some Logs.Debug);
   ()
 
-let () = 
-  setup_logging_to_file "/tmp/llogs.log";
-  let _rpc_loop = Lwt_main.run (
-    let%lwt client_msg = Utils.read () in
-    match client_msg with
-    | Some msg ->
-      let res = Message_handler.handle_message msg in
-      Utils.send res;
-    | None ->
-      Lwt.return_unit
-  )
-  in ()
+let _notify_and_log_error_sync msg e =
+  let exn_str = Printexc.to_string e in
+  Lwt.dont_wait
+    (fun () -> Utils.send @@ LSP_.notify_show_message ~kind:MessageType.Error exn_str)
+    (fun exn ->
+      Logs.err (fun m -> m "%s: %s" msg (Printexc.to_string exn));
+      let backtrace = Printexc.get_backtrace () in
+      Logs.err (fun m -> m "Backtrace: %s" backtrace))
+
+let start ( server : Rpc_server.t) =
+  let rec rpc_loop server =
+    match server.state with
+    | State.Stopped -> 
+      Logs.info (fun m -> m "Server stopped");
+      Lwt.return_unit;
+    | _ -> (
+      let%lwt client_msg = Utils.read () in
+      match client_msg with
+      | Some msg -> (
+        let%lwt server, reply_result = Message_handler.handle_message server msg in ()
+      )
+      | None -> 
+        Logs.debug (fun m -> m "Client disconnected");
+        Lwt.return_unit
+    )
+    in rpc_loop server

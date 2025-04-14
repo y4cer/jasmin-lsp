@@ -1,4 +1,5 @@
 export
+
 fn forty() -> reghh u32 {
   reg u32 r = 0;
   return r;
