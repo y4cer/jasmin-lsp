@@ -18,7 +18,7 @@ let setup_logging_to_file filename =
   Logs.set_level (Some Logs.Debug);
   ()
 
-let _notify_and_log_error_sync msg e =
+let notify_and_log_error_sync msg e =
   let exn_str = Printexc.to_string e in
   Lwt.dont_wait
     (fun () -> Utils.send @@ LSP_.notify_show_message ~kind:MessageType.Error exn_str)
@@ -27,7 +27,7 @@ let _notify_and_log_error_sync msg e =
       let backtrace = Printexc.get_backtrace () in
       Logs.err (fun m -> m "Backtrace: %s" backtrace))
 
-let start ( server : Rpc_server.t) =
+let start (server : Rpc_server.t) =
   let rec rpc_loop server =
     match server.state with
     | State.Stopped -> 
@@ -37,10 +37,21 @@ let start ( server : Rpc_server.t) =
       let%lwt client_msg = Utils.read () in
       match client_msg with
       | Some msg -> (
-        let%lwt server, reply_result = Message_handler.handle_message server msg in ()
+        let%lwt server = 
+          let server, reply_result = Message_handler.handle_message server msg
+        in Lwt.dont_wait
+          (fun () -> Utils.send reply_result)
+          (notify_and_log_error_sync "Error");
+        Lwt.return server
+      in rpc_loop server
       )
       | None -> 
         Logs.debug (fun m -> m "Client disconnected");
         Lwt.return_unit
     )
     in rpc_loop server
+
+let () =
+  setup_logging_to_file "/tmp/logs.log";
+  let server = { custom = "123"; state = State.Uninitialized } in
+  Lwt_main.run @@ start server
