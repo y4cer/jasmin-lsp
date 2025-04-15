@@ -7,13 +7,15 @@ let on_request (server : Rpc_server.t) (_params : InitializeParams.t) =
     ServerCapabilities.create
     ~textDocumentSync:
       ( `TextDocumentSyncOptions
-      (TextDocumentSyncOptions.create
-         ~openClose:true
-         ~change:TextDocumentSyncKind.Incremental
-         ~willSave:false
-         ~save:(`SaveOptions (SaveOptions.create ~includeText:false ()))
-         ~willSaveWaitUntil:false
-         ()))
+        (TextDocumentSyncOptions.create
+          ~openClose:true
+          ~change:TextDocumentSyncKind.Full
+          (* ~willSave:false
+          ~save:(`SaveOptions (SaveOptions.create ~includeText:false ()))
+          ~willSaveWaitUntil:false *)
+          ()
+        )
+      )
     ~workspace:
       (ServerCapabilities.create_workspace
          ~workspaceFolders:

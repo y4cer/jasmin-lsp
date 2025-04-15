@@ -10,6 +10,7 @@
  (name jasmin_lsp)
  (libraries 
   core
+  fpath
   jasmin.jasmin
   jsonrpc 
   logs logs.fmt

@@ -1,6 +1,5 @@
 export
-
-fn forty() -> reghh u32 {
+fn forty() -> regasd u32 {
   reg u32 r = 0;
   return r;
 }

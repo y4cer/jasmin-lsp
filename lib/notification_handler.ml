@@ -4,19 +4,19 @@ open Lsp
 (* open Types *)
 (* open Parse *)
 
-let on_notification (_server : Rpc_server.t) (notification : Client_notification.t) =
+let on_notification (server : Rpc_server.t) (notification : Client_notification.t) =
   let packet =
     match notification with
-    | Client_notification.TextDocumentDidOpen { textDocument = { text = _; uri; _}} -> 
+    | Client_notification.TextDocumentDidOpen { textDocument = { text; uri; _}} -> 
         Logs.debug (fun m -> m "didopen");
-        let diagnostic = Diagnostics.diagnostics_of_file uri in
+        let diagnostic = Diagnostics.diagnostics_of_file uri text in
         let packet = LSP_.notify diagnostic
       in Some packet
     | Client_notification.Initialized -> 
       Logs.debug (fun m -> m "initialized");
       None
     | _ -> None
-  in _server, packet
+  in server, packet
 
 let handle_notification (server : Rpc_server.t) notification =
   Logs.debug (
