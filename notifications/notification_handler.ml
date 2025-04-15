@@ -1,8 +1,5 @@
-(* open Jsonrpc *)
+open Jasmin_lsp
 open Lsp
-(* open Diagnostics *)
-(* open Types *)
-(* open Parse *)
 
 let on_notification (server : Rpc_server.t) (notification : Client_notification.t) =
   let packet =

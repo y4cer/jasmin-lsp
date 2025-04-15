@@ -1,5 +1,6 @@
 open Lsp
 open Types
+open Jasmin_lsp
 open Rpc_server
 
 let on_request (server : Rpc_server.t) (_params : InitializeParams.t) =
@@ -22,7 +23,7 @@ let on_request (server : Rpc_server.t) (_params : InitializeParams.t) =
            (WorkspaceFoldersServerCapabilities.create ~supported:true
               ~changeNotifications:(`Bool true) ())
          ())
-    ~hoverProvider:(`Bool true) ~codeActionProvider:(`Bool true)
+    ~documentHighlightProvider:(`Bool true)
     ()
   in
   let serverInfo =

@@ -5,6 +5,8 @@
   jasmin.jasmin
   lsp
   jasmin_lsp.internal
+  jasmin_lsp.notifications
+  jasmin_lsp.requests
   jasmin_lsp
  )
  (preprocess

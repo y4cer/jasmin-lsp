@@ -1,0 +1,14 @@
+(library
+ (public_name jasmin_lsp.requests)
+ (name jasmin_lsp_requests)
+ (wrapped false)
+ (libraries
+   jasmin_lsp.internal
+ )
+  (preprocess
+   (pps
+     ppx_deriving_yojson
+     lwt_ppx
+   )
+ )
+)

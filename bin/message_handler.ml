@@ -1,6 +1,7 @@
 open Jsonrpc
 open Request_handler
 open Notification_handler
+open Jasmin_lsp
 
 let handle_message (server : Rpc_server.t) (msg : Packet.t) =
   Logs.debug (fun m -> m "handling message");
