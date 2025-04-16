@@ -1,12 +1,8 @@
-(* open Jsonrpc *)
 open Lsp
 open Types
 open Parse
 
 module SN = Server_notification
-
-(*TODO: think about how to get parsing error. Parsing error is not actually an error in our case, it is desirable*)
-(* let range_of_err err =  *)
 
 let diagnostic loc msg =
   Diagnostic.create

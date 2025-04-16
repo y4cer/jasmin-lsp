@@ -41,8 +41,7 @@ let respond (type r) (id : Id.t) (request : r Client_request.t) (response : r) =
 let notify notification =
   let notification = SN.to_jsonrpc notification in
   Logs.debug (fun m ->
-      m "Sending notification %s"
-        (Notification.yojson_of_t notification |> Yojson.Safe.pretty_to_string));
+      m "Sending notification %s" notification.method_);
   packet_of_notification notification
 
 let notify_show_message ~kind s =
