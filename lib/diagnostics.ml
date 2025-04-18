@@ -14,8 +14,8 @@ let diagnostic (loc : Lexer.L.t) msg =
     ~severity: DiagnosticSeverity.Error
     ()
 
-let diagnostics_of_file file text =
-  let res = parse_string text in
+let diagnostics_of_file (file : Uri.t) _text =
+  let res = parse_file @@ Uri.to_path file in
   let diagnostics = 
     match res with 
     | Ok _ -> []

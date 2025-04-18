@@ -2,14 +2,9 @@ open Lsp
 open Types
 open Core
 open Lexing
-open Typing
-
-module L = MenhirLib.LexerUtil
-module E = MenhirLib.ErrorReports
+open Jasmin
 
 module P = Jasmin.Parser
-
-module I = P.MenhirInterpreter
 
 type error_position = 
   {
@@ -31,10 +26,33 @@ let print_error_position lexbuf =
   let pos = lexbuf.lex_curr_p in
   sprintf "Line:%d Position:%d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
+let parse_file (fname : string) : result = 
+  let module C = (val Jasmin.CoreArchFactory.core_arch_x86 ~use_lea:true ~use_set0:true !Jasmin.Glob_options.call_conv) in
+  let module Arch = Jasmin.Arch_full.Arch_from_Core_arch (C) in
+  Logs.debug (fun m -> m "%s" fname);
+  try (
+    let _env, _pprog, ast = Compile.parse_file Arch.arch_info ~idirs:!Glob_options.idirs fname 
+    in Ok ast
+  )
+  with
+    | Annot.AnnotationError (loc, code) -> 
+      Logs.debug (fun m -> m "annotation error %t" code);
+      Error (loc, "annotation error")
+      (* raise (End_of_file) *)
+    | Pretyping.TyError (loc, code) ->
+      Logs.debug (fun m -> m "typing error %a" Pretyping.pp_tyerror code);
+      Error (loc, "typing error")
+    | Syntax.ParseError (loc, msg) ->
+        let msg =
+          match msg with
+          | None -> "unexpected token" (* default message *)
+          | Some msg -> msg
+        in
+        Logs.debug (fun m -> m "parse error %s" msg);
+        Error (loc, "parse error")
+
 let parse_string (s : string) : result = 
   Logs.warn (fun m -> m "PARSING!");
-  let fname = "/home/drovosek/dip/lsp/jasmin-lsp/jasmin-examples/example.jazz" in 
-  type_program fname; 
   let lexbuf = Lexing.from_string s in
   let fallback_msg = "Parse error" in
   try Ok (P.module_ Lexer.main lexbuf) with
@@ -49,7 +67,7 @@ let parse_string (s : string) : result =
 let string_of_pos (pos : Position.t) =
   Printf.sprintf "line: %d, char: %d" pos.line pos.character
 
-(* why didn't they annotate this? 
+(* (* why didn't they annotate this? 
   Lexer.L.located.t.pl_loc.(loc_start|loc_end) (line, col) *)
 let is_pos_in_range (pos : Position.t) (pl_loc : Jasmin.Location.t) = 
   let open Jasmin.Location in
@@ -73,4 +91,4 @@ let analyze_file fname _workspace =
 let node_of_pos (pos : Position.t) (_ast : Lexer.S.pprogram) = 
   let _real_pos : Position.t = {line = pos.line + 1; character = pos.character} in
   (* let _a = List.map ast ~f:(find_node_at_pos real_pos) in *)
-  ()
+  () *)
