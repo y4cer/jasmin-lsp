@@ -20,12 +20,7 @@ type result = Ok of Lexer.S.pprogram | Error of Lexer.L.t * string
 let pos_of_lexbuf lexbuf : Lexer.L.t =
   let start_p = Lexing.lexeme_start_p lexbuf in
   let end_p = Lexing.lexeme_end_p lexbuf in
-    {  loc_fname = ""
-     ; loc_start = start_p.pos_lnum, start_p.pos_cnum
-     ; loc_end   = end_p.pos_lnum, end_p.pos_cnum
-     ; loc_bchar = start_p.pos_cnum
-     ; loc_echar = end_p.pos_cnum
-    }
+  Lexer.L.make start_p end_p
 
 let arch = Jasmin.CoreArchFactory.core_arch_x86 ~use_lea:true ~use_set0:true
 
