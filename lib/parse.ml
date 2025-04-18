@@ -2,6 +2,7 @@ open Lsp
 open Types
 open Core
 open Lexing
+open Typing
 
 module L = MenhirLib.LexerUtil
 module E = MenhirLib.ErrorReports
@@ -22,8 +23,6 @@ let pos_of_lexbuf lexbuf : Lexer.L.t =
   let end_p = Lexing.lexeme_end_p lexbuf in
   Lexer.L.make start_p end_p
 
-let arch = Jasmin.CoreArchFactory.core_arch_x86 ~use_lea:true ~use_set0:true
-
 (* TODO: incremental parsing *)
 
 (* Prints the line number and character number where the error occurred.*)
@@ -33,6 +32,9 @@ let print_error_position lexbuf =
   sprintf "Line:%d Position:%d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
 let parse_string (s : string) : result = 
+  Logs.warn (fun m -> m "PARSING!");
+  let fname = "/home/drovosek/dip/lsp/jasmin-lsp/jasmin-examples/example.jazz" in 
+  type_program fname; 
   let lexbuf = Lexing.from_string s in
   let fallback_msg = "Parse error" in
   try Ok (P.module_ Lexer.main lexbuf) with
