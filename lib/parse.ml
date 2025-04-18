@@ -10,19 +10,24 @@ module P = Jasmin.Parser
 
 module I = P.MenhirInterpreter
 
-type cur_pos = 
+type error_position = 
   {
-    loc_lnum: int;
-    loc_cnum: int;
+    start_p: Lexing.position;
+    end_p: Lexing.position;
   }
   
-type result = Ok of Lexer.S.pprogram | Error of cur_pos * string
-let pos_of_lexbuf lexbuf : cur_pos =
-  let pos = lexbuf.lex_curr_p in
-    { 
-      loc_lnum = pos.pos_lnum - 1;
-      loc_cnum = (pos.pos_cnum - pos.pos_bol);
+type result = Ok of Lexer.S.pprogram | Error of Lexer.L.t * string
+let pos_of_lexbuf lexbuf : Lexer.L.t =
+  let start_p = Lexing.lexeme_start_p lexbuf in
+  let end_p = Lexing.lexeme_end_p lexbuf in
+    {  loc_fname = ""
+     ; loc_start = start_p.pos_lnum, start_p.pos_cnum
+     ; loc_end   = end_p.pos_lnum, end_p.pos_cnum
+     ; loc_bchar = start_p.pos_cnum
+     ; loc_echar = end_p.pos_cnum
     }
+
+let arch = Jasmin.CoreArchFactory.core_arch_x86 ~use_lea:true ~use_set0:true
 
 (* TODO: incremental parsing *)
 
@@ -36,11 +41,11 @@ let parse_string (s : string) : result =
   let lexbuf = Lexing.from_string s in
   let fallback_msg = "Parse error" in
   try Ok (P.module_ Lexer.main lexbuf) with
-  | Jasmin.Syntax.ParseError (_, msg) -> (
-    let cur_pos = pos_of_lexbuf lexbuf in
+  | Jasmin.Syntax.ParseError (loc, msg) -> (
+    Logs.debug (fun m -> m "Jasmin parse error");
     match msg with
-    | Some msg_ -> Error (cur_pos, msg_)
-    | None -> Error (cur_pos, fallback_msg) 
+    | Some msg_ -> Error (loc, msg_)
+    | None -> Error (loc, fallback_msg) 
   )
   | Parser.Error -> Error (pos_of_lexbuf lexbuf, fallback_msg)
 
@@ -58,17 +63,17 @@ let is_pos_in_range (pos : Position.t) (pl_loc : Jasmin.Location.t) =
   (pos.line > fst pl_loc.loc_start || pos.character >= snd pl_loc.loc_start) &&
   (pos.line < fst pl_loc.loc_end || pos.character <= snd pl_loc.loc_end)
 
-let find_node_at_pos (pos : Position.t) (item : Lexer.S.pitem Lexer.L.located) = 
-  if is_pos_in_range pos item.pl_loc then
-    match item.pl_desc with
-    | Lexer.S.PFundef fundef -> 
-      Logs.debug (fun m -> m "%s" fundef.pdf_name.pl_desc);
-       None
-    | _ -> None
-  else None
+let analyze_file fname _workspace =
+  let _architecture = Jasmin.Glob_options.target_arch in
+  Printf.eprintf "Analyzing file %s\n" fname;
+  (* let get_ast ~fname = Option.bind (PathMap.find_opt fname workspace.open_documents) ~f:(fun st -> DocumentManager.get_ast st) in  *)
+  ()
+
+(* let find_node_at_pos (_pos : Position.t) (_item : _ Lexer.L.located) = 
+  None *)
 
 (* Trying to find the AST node by the given pos *)
-let node_of_pos (pos : Position.t) (ast : Lexer.S.pprogram) = 
-  let real_pos : Position.t = {line = pos.line + 1; character = pos.character} in
-  let _a = List.map ast ~f:(find_node_at_pos real_pos) in
+let node_of_pos (pos : Position.t) (_ast : Lexer.S.pprogram) = 
+  let _real_pos : Position.t = {line = pos.line + 1; character = pos.character} in
+  (* let _a = List.map ast ~f:(find_node_at_pos real_pos) in *)
   ()

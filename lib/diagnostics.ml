@@ -4,11 +4,11 @@ open Parse
 
 module SN = Server_notification
 
-let diagnostic loc msg =
+let diagnostic (loc : Lexer.L.t) msg =
   Diagnostic.create
     ~range:(Range.create 
-              ~start: (Position.create ~line: loc.loc_lnum ~character: loc.loc_cnum)
-              ~end_: (Position.create ~line: loc.loc_lnum ~character: loc.loc_cnum)
+              ~start: (Position.create ~line: (fst loc.loc_start - 1) ~character: (snd loc.loc_start))
+              ~end_: (Position.create ~line: (fst loc.loc_end - 1) ~character: (snd loc.loc_end))
             )
     ~message: msg
     ~severity: DiagnosticSeverity.Error

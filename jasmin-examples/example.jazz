@@ -1,5 +1,5 @@
 export
-fn forty() -> reg u32 {
+fn forty() -> reg1 u32 {
   reg u32 r = 0;
   return r;
 }
