@@ -13,8 +13,8 @@ let handle_request (type r) (server : Rpc_server.t) (request : r Client_request.
   | Client_request.TextDocumentHighlight params ->
     Logs.debug (fun m -> m "document highlight req");
     let highlight_res = Document_highlight.highlight params in
-    let resp = DocumentHighlight.yojson_of_t highlight_res in
-    let resp_packet = LSP_.respond_json req_id resp in
+    let resp = List.map (fun res -> DocumentHighlight.yojson_of_t res) highlight_res in
+    let resp_packet = LSP_.respond_json req_id (`List resp) in
     server, resp_packet
   | _ -> 
     Logs.debug (fun m -> m "unknown req");

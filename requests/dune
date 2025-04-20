@@ -4,6 +4,7 @@
  (wrapped false)
  (libraries
    jasmin_lsp.internal
+   yojson
  )
   (preprocess
    (pps
