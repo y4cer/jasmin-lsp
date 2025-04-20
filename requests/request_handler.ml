@@ -9,12 +9,13 @@ let handle_request (type r) (server : Rpc_server.t) (request : r Client_request.
     Logs.debug (fun m -> m "init req");
     let server, init = Initialize_request.on_request server params in 
     let resp = LSP_.respond req_id request init in
-    let _st = Packet.yojson_of_t resp |> Yojson.Safe.pretty_to_string in 
     server, resp
   | Client_request.TextDocumentHighlight params ->
     Logs.debug (fun m -> m "document highlight req");
-    let _highlight_res = Document_highlight.highlight params in
-    server, LSP_.packet_of_request @@ Client_request.to_jsonrpc_request request ~id:(`Int 0)
+    let highlight_res = Document_highlight.highlight params in
+    let resp = DocumentHighlight.yojson_of_t highlight_res in
+    let resp_packet = LSP_.respond_json req_id resp in
+    server, resp_packet
   | _ -> 
     Logs.debug (fun m -> m "unknown req");
     server, LSP_.packet_of_request @@ Client_request.to_jsonrpc_request request ~id:(`Int 0)

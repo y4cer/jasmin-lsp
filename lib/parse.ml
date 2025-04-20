@@ -1,5 +1,3 @@
-open Lsp
-open Types
 open Core
 open Lexing
 open Jasmin
@@ -29,7 +27,7 @@ let print_error_position lexbuf =
 let parse_file (fname : string) : result = 
   let module C = (val Jasmin.CoreArchFactory.core_arch_x86 ~use_lea:true ~use_set0:true !Jasmin.Glob_options.call_conv) in
   let module Arch = Jasmin.Arch_full.Arch_from_Core_arch (C) in
-  Logs.debug (fun m -> m "%s" fname);
+  Logs.debug (fun m -> m "filename: %s" fname);
   try (
     let _env, _pprog, ast = Compile.parse_file Arch.arch_info ~idirs:!Glob_options.idirs fname 
     in Ok ast
@@ -50,22 +48,6 @@ let parse_file (fname : string) : result =
         in
         Logs.debug (fun m -> m "parse error %s" msg);
         Error (loc, "parse error")
-
-let parse_string (s : string) : result = 
-  Logs.warn (fun m -> m "PARSING!");
-  let lexbuf = Lexing.from_string s in
-  let fallback_msg = "Parse error" in
-  try Ok (P.module_ Lexer.main lexbuf) with
-  | Jasmin.Syntax.ParseError (loc, msg) -> (
-    Logs.debug (fun m -> m "Jasmin parse error");
-    match msg with
-    | Some msg_ -> Error (loc, msg_)
-    | None -> Error (loc, fallback_msg) 
-  )
-  | Parser.Error -> Error (pos_of_lexbuf lexbuf, fallback_msg)
-
-let string_of_pos (pos : Position.t) =
-  Printf.sprintf "line: %d, char: %d" pos.line pos.character
 
 (* (* why didn't they annotate this? 
   Lexer.L.located.t.pl_loc.(loc_start|loc_end) (line, col) *)

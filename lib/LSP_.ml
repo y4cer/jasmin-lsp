@@ -32,7 +32,7 @@ let packet_of_response (r : Response.t) = Packet.Response r
 let packet_of_request (r : Request.t) = Packet.Request r
 let packet_of_notification (n : Notification.t) = Packet.Notification n
 
-let respond_json id result = packet_of_response (Response.ok id result)
+let respond_json (id : Id.t) result = packet_of_response (Response.ok id result)
 
 let respond (type r) (id : Id.t) (request : r Client_request.t) (response : r) = 
   response |> Client_request.yojson_of_result request |> respond_json id
