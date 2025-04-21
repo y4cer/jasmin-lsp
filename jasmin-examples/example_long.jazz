@@ -1,29 +1,12 @@
-param int cROUNDS = 2;
-param int dROUNDS = 4;
-
-inline
-fn sipround(reg u64[4] v) -> reg u64[4] {
-  v[0] += v[1];
-  return v;
-}
-
-export
-fn siphash_jazz(
-  reg u64 in, reg u64 inlen,
-  reg u64 kptr,
-  reg u64 out, reg u64 outlen
-) /*-> reg u64*/ {
-  while (in != end) {
-    m = [in + 0 * 8];
-    v[3] ^= m;
-    for i = 0 to cROUNDS {
-      v = sipround(v);
-    }
-    v[0] ^= m;
-    in += 8;
+/* Parameters
+  fn f(reg u32) -> reg u32
+*/
+fn map(reg ptr u32[4] p) -> reg ptr u32[4] {
+  inline int i;
+  for i = 0 to 4 {
+    reg u32 t;
+    t = p[i];
+    p[i] = t;
   }
-
-  for i = 0 to cROUNDS {
-    v = sipround(v);
-  }
+  return p;
 }

@@ -1,5 +1,6 @@
 export
-fn forty() -> reg u32 {
+fn forty() -> reg u64 {
   reg u32 r = 0;
-  return r;
+  reg u64 rr = (64u)r;
+  return rr;
 }
