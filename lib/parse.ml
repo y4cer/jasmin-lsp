@@ -40,22 +40,12 @@ let print_error_position lexbuf =
   let pos = lexbuf.lex_curr_p in
   sprintf "Line:%d Position:%d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
-let string_of_gty (gty : pexpr_ gty) =
-  match gty with 
-  | Bty (base_type : base_ty) -> 
-    (match base_type with 
-      | Bool -> "bool"
-      | Int -> "int"
-      | U wsize -> Format.sprintf "u%d" @@ int_of_ws wsize
-    )
-  | Arr (wsize, _len) -> Format.sprintf "u%d[NOT IMPLEMENTED]]" (*FIXME: add compile-time evaluation*) (int_of_ws wsize) 
-
 let iter_pprog (pprog_item : ('info, 'asm) pmod_item) = 
   let _  = match pprog_item with
   | MIfun {f_name; f_body; f_tyout; _} ->
     let _ret_ty = List.map f_tyout ~f:(
       fun (ty : pexpr_ gty) -> (
-        let str_type = string_of_gty ty in
+        let str_type = Format.asprintf "%a" Printer.pp_ptype ty in
         Logs.debug (fun m -> m "%s" str_type);
       )
     ) in
@@ -72,6 +62,9 @@ let parse_file (fname : string) : result =
   try (
     let _env, pprog, ast = Compile.parse_file Arch.arch_info ~idirs:!Glob_options.idirs fname in
     let _ = List.iter ~f:iter_pprog pprog in
+    let deps = Pretyping.Env.dependencies _env in
+    let _func = Pretyping.Env.Funs.find "forty" _env in
+    List.iter deps ~f:(fun dep -> Logs.debug (fun m -> m "%s" @@ String.concat dep ~sep:" "));
     Ok (pprog, ast)
   )
   with
