@@ -11,7 +11,7 @@ type error_position =
     end_p: Lexing.position;
   }
 
-type pprogram = ( unit,
+type reg = 
   ( X86_decl.register,
     X86_decl.register_ext,
     X86_decl.xmm_register,
@@ -19,11 +19,9 @@ type pprogram = ( unit,
     X86_decl.condt,
     X86_instr_decl.x86_op,
     X86_extra.x86_extra_op )
-  Arch_extra.extended_op )
-pmod_item
-list
+  Arch_extra.extended_op
 
-type result = Ok of pprogram * Lexer.S.pprogram | Error of Lexer.L.t * string
+type result = Ok of (unit, reg) pmod_item list * Lexer.S.pprogram | Error of Lexer.L.t * string
 let pos_of_lexbuf lexbuf : Lexer.L.t =
   let start_p = Lexing.lexeme_start_p lexbuf in
   let end_p = Lexing.lexeme_end_p lexbuf in
@@ -40,6 +38,9 @@ let print_error_position lexbuf =
   let pos = lexbuf.lex_curr_p in
   sprintf "Line:%d Position:%d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
+(* let iter_fbody (f_body : ((pexpr_, unit, reg) gstmt)) =
+() *)
+
 let iter_pprog (pprog_item : ('info, 'asm) pmod_item) = 
   let _  = match pprog_item with
   | MIfun {f_name; f_body; f_tyout; _} ->
@@ -51,9 +52,28 @@ let iter_pprog (pprog_item : ('info, 'asm) pmod_item) =
     ) in
     Logs.debug (fun m -> m "%s" f_name.fn_name);
     Logs.debug (fun m -> m "%d" @@ List.length f_body);
+    (* List.iter f_body ~f:iter_fbody; *)
   | _ -> () 
   in 
   ()
+
+(*
+NB: do not forget about name shadowing. 
+e.g.
+
+export
+fn forty() -> reg u64 {
+  reg u32 r = 0;            <- r declared first time
+  if (r == 0) {
+    reg u64 r = 1;          <- r declared second time
+  }
+  reg u64 r = (64u)r;       <- r declared third time
+  return r;                 <- if I hover over this r, 
+                               only the one above must be highlighted
+}
+
+*)
+(* let find_enclosing_interval loc ast = () *)
 
 let parse_file (fname : string) : result = 
   let module C = (val Jasmin.CoreArchFactory.core_arch_x86 ~use_lea:true ~use_set0:true !Jasmin.Glob_options.call_conv) in

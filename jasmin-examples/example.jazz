@@ -1,6 +1,9 @@
 export
 fn forty() -> reg u64 {
   reg u32 r = 0;
-  reg u64 rr = (64u)r;
-  return rr;
+  if (r == 0) {
+    reg u64 r = 1;
+  }
+  reg u64 r = (64u)r;
+  return r;
 }
