@@ -1,7 +1,7 @@
 /* Parameters
   fn f(reg u32) -> reg u32
 */
-fn map(reg ptr u32[4] p) -> reg ptr u32[4] {
+fn map(reg ptr u32[100] p) -> reg ptr u32[4] {
   inline int i;
   for i = 0 to 4 {
     reg u32 t;
