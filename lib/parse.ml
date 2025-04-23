@@ -2,6 +2,7 @@ open Core
 open Lexing
 open Jasmin
 open Jasmin.Prog
+open Lsp.Types
 
 module P = Jasmin.Parser
 
@@ -38,10 +39,34 @@ let print_error_position lexbuf =
   let pos = lexbuf.lex_curr_p in
   sprintf "Line:%d Position:%d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
-(* let iter_fbody (f_body : ((pexpr_, unit, reg) gstmt)) =
-() *)
+(* NB: node.d_loc might be used for goto definition! *)
+
+type char_loc = int
+
+let iter_instr (loc: char_loc) (instr : ((pexpr_, unit, reg) ginstr)) =
+  let base_loc = instr.i_loc.base_loc in
+  let _ =  if (loc >= base_loc.loc_bchar && loc <= base_loc.loc_echar) then 
+    match instr.i_desc with
+    | Cassgn (glval, _assign_tag, _gty, gexpr) -> 
+      (let _ = match glval with 
+        | Lvar gvar -> 
+          ( let var_id = gvar.pl_desc.v_id in
+            let line = fst gvar.pl_loc.loc_start in
+            Logs.debug (fun m -> m "line: %d, name: %s, id: %s" line gvar.pl_desc.v_name (Prog.string_of_uid var_id));
+          ()
+          )
+        | _ -> ()
+      in
+      let str_type = Format.asprintf "%a" Printer.pp_pexpr gexpr in
+      Logs.debug (fun m -> m "%s" str_type);
+      None
+      )
+    | _ -> None
+    else None 
+  in
 
 let iter_pprog (pprog_item : ('info, 'asm) pmod_item) = 
+  let pos = Position.create ~line: 2 ~character: 2 in
   let _  = match pprog_item with
   | MIfun {f_name; f_body; f_tyout; _} ->
     let _ret_ty = List.map f_tyout ~f:(
@@ -52,7 +77,7 @@ let iter_pprog (pprog_item : ('info, 'asm) pmod_item) =
     ) in
     Logs.debug (fun m -> m "%s" f_name.fn_name);
     Logs.debug (fun m -> m "%d" @@ List.length f_body);
-    (* List.iter f_body ~f:iter_fbody; *)
+    List.iter f_body ~f:(fun instr -> iter_instr pos instr);
   | _ -> () 
   in 
   ()
