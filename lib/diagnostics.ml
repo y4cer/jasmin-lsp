@@ -15,7 +15,7 @@ let diagnostic (loc : Lexer.L.t) msg =
     ()
 
 let diagnostics_of_file (file : Uri.t) _text =
-  let res = parse_file @@ Uri.to_path file in
+  let res = parse_file None (Uri.to_path file) in
   let diagnostics = 
     match res with 
     | Ok _ -> []

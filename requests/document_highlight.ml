@@ -5,8 +5,8 @@ open Parse
 
 let highlight (params : DocumentHighlightParams.t) = 
   let fname = params.textDocument.uri in
-  let res = parse_file (Uri.to_path fname) in
-  let _pos = params.position in
+  let pos = Position.create ~line:(params.position.line + 1) ~character:(params.position.character) in
+  let res = parse_file (Some pos) (Uri.to_path fname) in
 
   let start_pos = Position.create ~line:1 ~character:1 in
   let end_pos = Position.create ~line:1 ~character:4  in

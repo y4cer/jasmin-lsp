@@ -1,5 +1,4 @@
 open Core
-open Lexing
 open Jasmin
 open Jasmin.Prog
 open Lsp.Types
@@ -28,24 +27,20 @@ let pos_of_lexbuf lexbuf : Lexer.L.t =
   let end_p = Lexing.lexeme_end_p lexbuf in
   Lexer.L.make start_p end_p
 
-let string_of_position (pos : Lexing.position) =
-  Printf.sprintf "%d:%d" pos.pos_lnum pos.pos_cnum
-
 (* TODO: incremental parsing *)
-
-(* Prints the line number and character number where the error occurred.*)
-(* for debug only *)
-let print_error_position lexbuf =
-  let pos = lexbuf.lex_curr_p in
-  sprintf "Line:%d Position:%d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
 
 (* NB: node.d_loc might be used for goto definition! *)
 
-type char_loc = int
+let check_if_pos_in_node (pos: Position.t) (loc: Prog.L.t) =
+  let p1_bol = loc.loc_bchar - (snd loc.loc_start) in
+  (pos.line >= fst loc.loc_start) &&
+  (pos.line <= fst loc.loc_end)   &&
+  (pos.character + p1_bol >= loc.loc_bchar) &&
+  (pos.character + p1_bol <= loc.loc_echar)
 
-let iter_instr (loc: char_loc) (instr : ((pexpr_, unit, reg) ginstr)) =
+let iter_instr (pos: Position.t) (instr : ((pexpr_, unit, reg) ginstr)) =
   let base_loc = instr.i_loc.base_loc in
-  let _ =  if (loc >= base_loc.loc_bchar && loc <= base_loc.loc_echar) then 
+  let _ =  if (check_if_pos_in_node pos base_loc) then 
     match instr.i_desc with
     | Cassgn (glval, _assign_tag, _gty, gexpr) -> 
       (let _ = match glval with 
@@ -61,26 +56,31 @@ let iter_instr (loc: char_loc) (instr : ((pexpr_, unit, reg) ginstr)) =
       Logs.debug (fun m -> m "%s" str_type);
       None
       )
-    | _ -> None
+    | _ -> 
+      Logs.debug (fun m -> m "unknown");
+      None
     else None 
   in
-
-let iter_pprog (pprog_item : ('info, 'asm) pmod_item) = 
-  let pos = Position.create ~line: 2 ~character: 2 in
-  let _  = match pprog_item with
-  | MIfun {f_name; f_body; f_tyout; _} ->
-    let _ret_ty = List.map f_tyout ~f:(
-      fun (ty : pexpr_ gty) -> (
-        let str_type = Format.asprintf "%a" Printer.pp_ptype ty in
-        Logs.debug (fun m -> m "%s" str_type);
-      )
-    ) in
-    Logs.debug (fun m -> m "%s" f_name.fn_name);
-    Logs.debug (fun m -> m "%d" @@ List.length f_body);
-    List.iter f_body ~f:(fun instr -> iter_instr pos instr);
-  | _ -> () 
-  in 
   ()
+
+let iter_pprog (pos: Position.t option) (pprog_item : ('info, 'asm) pmod_item) = 
+  match pos with 
+  | None -> ()
+  | Some pos ->
+    let _  = match pprog_item with
+    | MIfun {f_name = _; f_body; f_tyout; _} ->
+      let _ret_ty = List.map f_tyout ~f:(
+        fun (ty : pexpr_ gty) -> (
+          let str_type = Format.asprintf "%a" Printer.pp_ptype ty in
+          Logs.debug (fun m -> m "%s" str_type);
+        )
+      ) in
+      (* Logs.debug (fun m -> m "%s" f_name.fn_name);
+      Logs.debug (fun m -> m "%d" @@ List.length f_body); *)
+      List.iter f_body ~f:(fun instr -> iter_instr pos instr);
+    | _ -> () 
+    in 
+    ()
 
 (*
 NB: do not forget about name shadowing. 
@@ -100,13 +100,13 @@ fn forty() -> reg u64 {
 *)
 (* let find_enclosing_interval loc ast = () *)
 
-let parse_file (fname : string) : result = 
+let parse_file (pos: Position.t option) (fname : string) : result = 
   let module C = (val Jasmin.CoreArchFactory.core_arch_x86 ~use_lea:true ~use_set0:true !Jasmin.Glob_options.call_conv) in
   let module Arch = Jasmin.Arch_full.Arch_from_Core_arch (C) in
   Logs.debug (fun m -> m "filename: %s" fname);
   try (
     let _env, pprog, ast = Compile.parse_file Arch.arch_info ~idirs:!Glob_options.idirs fname in
-    let _ = List.iter ~f:iter_pprog pprog in
+    let _ = List.iter ~f:(iter_pprog pos) pprog in
     let deps = Pretyping.Env.dependencies _env in
     let _func = Pretyping.Env.Funs.find "forty" _env in
     List.iter deps ~f:(fun dep -> Logs.debug (fun m -> m "%s" @@ String.concat dep ~sep:" "));
