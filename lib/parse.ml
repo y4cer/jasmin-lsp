@@ -38,30 +38,38 @@ let check_if_pos_in_node (pos: Position.t) (loc: Prog.L.t) =
   (pos.character + p1_bol >= loc.loc_bchar) &&
   (pos.character + p1_bol <= loc.loc_echar)
 
-let iter_instr (pos: Position.t) (instr : ((pexpr_, unit, reg) ginstr)) =
-  let base_loc = instr.i_loc.base_loc in
-  let _ =  if (check_if_pos_in_node pos base_loc) then 
-    match instr.i_desc with
-    | Cassgn (glval, _assign_tag, _gty, gexpr) -> 
-      (let _ = match glval with 
-        | Lvar gvar -> 
-          ( let var_id = gvar.pl_desc.v_id in
-            let line = fst gvar.pl_loc.loc_start in
-            Logs.debug (fun m -> m "line: %d, name: %s, id: %s" line gvar.pl_desc.v_name (Prog.string_of_uid var_id));
-          ()
-          )
-        | _ -> ()
-      in
-      let str_type = Format.asprintf "%a" Printer.pp_pexpr gexpr in
-      Logs.debug (fun m -> m "%s" str_type);
-      None
-      )
-    | _ -> 
-      Logs.debug (fun m -> m "unknown");
-      None
-    else None 
-  in
-  ()
+let return_if_pos (type a) (pos: Position.t) (item: a L.located) : a Prog.L.located option =
+  if (check_if_pos_in_node pos item.pl_loc) then
+    Some item
+  else None 
+
+let iter_var (type a) (_pos: Position.t) (_expr: pexpr_ gvar) : a Prog.L.located option = 
+  None
+
+let iter_expr (type a) (_pos: Position.t) (_expr: pexpr_ gexpr) : a Prog.L.located option = 
+  None
+
+let iter_instr (type a) (pos: Position.t) (instr : ((pexpr_, unit, reg) ginstr)) : a Prog.L.located option =
+  match instr.i_desc with
+  | Cassgn (glval, _assign_tag, _gty, gexpr) -> 
+    (let _ = match glval with 
+      | Lvar gvar -> 
+        ( let var_id = gvar.pl_desc.v_id in
+          let line = fst gvar.pl_loc.loc_start in
+          let _aa = return_if_pos pos gvar in
+          Logs.debug (fun m -> m "line: %d, name: %s, id: %s" line gvar.pl_desc.v_name (Prog.string_of_uid var_id));
+          let _ = iter_expr pos gexpr in
+        ()
+        )
+      | _ -> ()
+    in
+    let str_type = Format.asprintf "%a" Printer.pp_pexpr gexpr in
+    Logs.debug (fun m -> m "%s" str_type);
+    None
+    )
+  | _ -> 
+    Logs.debug (fun m -> m "unknown");
+    None
 
 let iter_pprog (pos: Position.t option) (pprog_item : ('info, 'asm) pmod_item) = 
   match pos with 
@@ -77,7 +85,13 @@ let iter_pprog (pos: Position.t option) (pprog_item : ('info, 'asm) pmod_item) =
       ) in
       (* Logs.debug (fun m -> m "%s" f_name.fn_name);
       Logs.debug (fun m -> m "%d" @@ List.length f_body); *)
-      List.iter f_body ~f:(fun instr -> iter_instr pos instr);
+      List.iter f_body ~f:(fun instr -> (
+        let base_loc = instr.i_loc.base_loc in
+        if (check_if_pos_in_node pos base_loc) then 
+          let _ = iter_instr pos instr 
+          in ()
+        else () 
+      ));
     | _ -> () 
     in 
     ()
@@ -98,7 +112,6 @@ fn forty() -> reg u64 {
 }
 
 *)
-(* let find_enclosing_interval loc ast = () *)
 
 let parse_file (pos: Position.t option) (fname : string) : result = 
   let module C = (val Jasmin.CoreArchFactory.core_arch_x86 ~use_lea:true ~use_set0:true !Jasmin.Glob_options.call_conv) in

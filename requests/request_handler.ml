@@ -16,6 +16,19 @@ let handle_request (type r) (server : Rpc_server.t) (request : r Client_request.
     let resp = List.map (fun res -> DocumentHighlight.yojson_of_t res) highlight_res in
     let resp_packet = LSP_.respond_json req_id (`List resp) in
     server, resp_packet
+  | Client_request.TextDocumentHover _params -> 
+    Logs.debug (fun m -> m "document hover req");
+    let resp = Hover.
+                  {
+                    contents = `MarkedString {language = Some "OCaml"; value = "aboba"};
+                    range = Some {
+                      start = { character = 2; line = 3};
+                      end_ = { character = 3; line = 3}
+                    }
+                  } 
+    in
+    let resp_packet = LSP_.respond_json req_id (Hover.yojson_of_t resp) in
+    server, resp_packet
   | _ -> 
     Logs.debug (fun m -> m "unknown req");
     server, LSP_.packet_of_request @@ Client_request.to_jsonrpc_request request ~id:(`Int 0)
